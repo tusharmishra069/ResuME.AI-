@@ -37,3 +37,4 @@ def extract_text_from_file(uploaded_file):
     
     else:
         return uploaded_file.read().decode("utf-8")
+

@@ -1,9 +1,8 @@
-# utils/gemini.py
 from google import genai
 import os
+from dotenv import load_dotenv
 
-# Configure the client
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+client = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
 
 def enhance_resume(text, jd_context=None):
     prompt = f"""

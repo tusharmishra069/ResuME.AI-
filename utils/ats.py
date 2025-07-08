@@ -3,8 +3,9 @@ import os
 import base64
 import io
 from pdf2image import convert_from_bytes
+from dotenv import load_dotenv
 
-# Initialize the GenAI client with the API key from environment variables
+
 client = genai.Client(api_key=os.getenv("GENAI_API_KEY"))
 
 def get_gemini_response(input_prompt, pdf_content, job_description):
@@ -40,14 +41,9 @@ def input_pdf_setup(uploaded_file):
         str: The processed PDF content as a base64-encoded string.
     """
     if uploaded_file is not None:
-        try:
-            # Convert the PDF to images
+        try: 
             images = convert_from_bytes(uploaded_file.read())
-
-            # Process the first page of the PDF
             first_page = images[0]
-
-            # Convert the image to bytes
             img_byte_arr = io.BytesIO()
             first_page.save(img_byte_arr, format="JPEG")
             img_byte_arr = img_byte_arr.getvalue()
@@ -94,7 +90,6 @@ def check_ats_score(resume_text, job_description):
     """.format(resume_text, job_description)
     
     try:
-        # Get response from AI model
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents=[prompt]
@@ -102,19 +97,16 @@ def check_ats_score(resume_text, job_description):
         
         result_text = response.text
         
-        # Initialize dictionary with default values
         ats_result = {
             "percentage_match": "0%",
             "missing_keywords": [],
             "final_thoughts": "Unable to analyze the resume."
         }
-        
-        # Extract percentage match
+      
         if result_text and "Percentage Match:" in result_text:
             match_line = [line for line in result_text.split('\n') if "Percentage Match:" in line][0]
             ats_result["percentage_match"] = match_line.split("Percentage Match:")[1].strip()
-        
-        # Extract missing keywords
+
         missing_keywords = []
         keyword_section = False
         thoughts_section = False
@@ -126,12 +118,10 @@ def check_ats_score(resume_text, job_description):
         
         for line in result_text.split('\n'):
             line = line.strip()
-            
-            # Skip empty lines
+ 
             if not line:
                 continue
-                
-            # Detect section headers
+ 
             if "Missing Keywords:" in line:
                 keyword_section = True
                 thoughts_section = False
@@ -140,13 +130,11 @@ def check_ats_score(resume_text, job_description):
                 keyword_section = False
                 thoughts_section = True
                 continue
-                
-            # Process each section
+
             if keyword_section:
                 if line.startswith("- "):
                     missing_keywords.append(line[2:])
                 elif line == "No critical keywords missing":
-                    # Keep missing_keywords as empty list
                     pass
             elif thoughts_section:
                 final_thoughts_lines.append(line)
